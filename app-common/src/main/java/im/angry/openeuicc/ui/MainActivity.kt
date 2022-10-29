@@ -78,6 +78,7 @@ open class MainActivity : BaseEuiccAccessActivity(), OpenEuiccContextMarker {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(requireViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setupToolbarInsets()
         loadingProgress = requireViewById(R.id.loading)
         tabs = requireViewById(R.id.main_tabs)
@@ -114,6 +115,10 @@ open class MainActivity : BaseEuiccAccessActivity(), OpenEuiccContextMarker {
             }
             R.id.reload -> {
                 refresh()
+                true
+            }
+            android.R.id.home -> {
+                onBackPressed();
                 true
             }
             else -> super.onOptionsItemSelected(item)
