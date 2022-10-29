@@ -48,6 +48,7 @@ open class MainActivity : AppCompatActivity() {
         manager = openEuiccApplication.euiccChannelManager
 
         spinnerAdapter = ArrayAdapter<String>(this, R.layout.spinner_item)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         lifecycleScope.launch {
             init()
@@ -90,6 +91,10 @@ open class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, SettingsActivity::class.java));
                 true
             }
+        android.R.id.home -> {
+            onBackPressed();
+            true
+        }
             else -> super.onOptionsItemSelected(item)
         }
 
