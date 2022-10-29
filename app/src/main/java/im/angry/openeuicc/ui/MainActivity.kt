@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         manager = openEuiccApplication.euiccChannelManager
 
         spinnerAdapter = ArrayAdapter<String>(this, R.layout.spinner_item)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         lifecycleScope.launch {
             init()
@@ -85,6 +86,10 @@ class MainActivity : AppCompatActivity() {
             tm.dsdsEnabled = !item.isChecked
             Toast.makeText(this, R.string.toast_dsds_switched, Toast.LENGTH_LONG).show()
             finish()
+            true
+        }
+        android.R.id.home -> {
+            onBackPressed();
             true
         }
         else -> false
