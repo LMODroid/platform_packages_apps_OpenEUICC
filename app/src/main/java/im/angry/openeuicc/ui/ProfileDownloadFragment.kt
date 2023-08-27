@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
@@ -29,8 +30,8 @@ class ProfileDownloadFragment : DialogFragment(), EuiccFragmentMarker, Toolbar.O
     }
 
     private lateinit var toolbar: Toolbar
-    private lateinit var profileDownloadServer: TextInputLayout
-    private lateinit var profileDownloadCode: TextInputLayout
+    private lateinit var profileDownloadServer: EditText
+    private lateinit var profileDownloadCode: EditText
     private lateinit var progress: ProgressBar
 
     private var downloading = false
@@ -40,8 +41,8 @@ class ProfileDownloadFragment : DialogFragment(), EuiccFragmentMarker, Toolbar.O
             Log.d(TAG, content)
             val components = content.split("$")
             if (components.size < 3 || components[0] != "LPA:1") return@registerForActivityResult
-            profileDownloadServer.editText?.setText(components[1])
-            profileDownloadCode.editText?.setText(components[2])
+            profileDownloadServer.setText(components[1])
+            profileDownloadCode.setText(components[2])
         }
     }
 
@@ -102,21 +103,22 @@ class ProfileDownloadFragment : DialogFragment(), EuiccFragmentMarker, Toolbar.O
     }
 
     private fun startDownloadProfile() {
-        val server = profileDownloadServer.editText!!.let {
-            it.text.toString().trim().apply {
-                if (isEmpty()) {
-                    it.requestFocus()
-                    return@startDownloadProfile
-                }
-            }
+
+        val server = profileDownloadServer.text.toString().trim()
+
+        if (server.isNullOrEmpty()) {
+            profileDownloadServer.requestFocus()
+            // Handle the case when the server input is empty
+            return@startDownloadProfile
         }
 
-        val code = profileDownloadCode.editText!!.text.toString().trim()
+
+        val code = profileDownloadCode.text.toString().trim()
 
         downloading = true
 
-        profileDownloadServer.editText!!.isEnabled = false
-        profileDownloadCode.editText!!.isEnabled = false
+        profileDownloadServer.isEnabled = false
+        profileDownloadCode.isEnabled = false
 
         progress.isIndeterminate = true
         progress.visibility = View.VISIBLE
