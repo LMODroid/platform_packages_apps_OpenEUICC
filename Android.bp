@@ -26,8 +26,8 @@ java_library_static {
     ],
     static_libs: [
         "OpenEUICC_androidx.datastore_datastore-core-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
-        "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-core-jvm",
+        "kotlin-stdlib",
+        "kotlinx-coroutines-core-jvm",
     ],
     java_version: "1.7",
 }
@@ -53,7 +53,7 @@ java_library_static {
     ],
     static_libs: [
         "OpenEUICC_androidx.datastore_datastore-preferences-core-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
+        "kotlin-stdlib",
         "OpenEUICC_androidx.datastore_datastore-core",
     ],
     java_version: "1.7",
@@ -69,7 +69,7 @@ android_library_import {
         "//apex_available:anyapex",
     ],
     static_libs: [
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
+        "kotlin-stdlib",
         "OpenEUICC_androidx.datastore_datastore",
         "OpenEUICC_androidx.datastore_datastore-preferences-core",
     ],
@@ -86,7 +86,7 @@ android_library {
     manifest: "androidx/datastore/datastore-preferences/1.0.0/AndroidManifest.xml",
     static_libs: [
         "OpenEUICC_androidx.datastore_datastore-preferences-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
+        "kotlin-stdlib",
         "OpenEUICC_androidx.datastore_datastore",
         "OpenEUICC_androidx.datastore_datastore-preferences-core",
     ],
@@ -103,7 +103,7 @@ android_library_import {
         "//apex_available:anyapex",
     ],
     static_libs: [
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
+        "kotlin-stdlib",
         "OpenEUICC_androidx.datastore_datastore-core",
     ],
 }
@@ -119,7 +119,7 @@ android_library {
     manifest: "androidx/datastore/datastore/1.0.0/AndroidManifest.xml",
     static_libs: [
         "OpenEUICC_androidx.datastore_datastore-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
+        "kotlin-stdlib",
         "OpenEUICC_androidx.datastore_datastore-core",
     ],
     java_version: "1.7",
@@ -226,163 +226,6 @@ android_library {
     static_libs: [
         "OpenEUICC_com.journeyapps_zxing-android-embedded-nodeps",
         "OpenEUICC_com.google.zxing_core",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk7-nodeps",
-    jars: ["org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.22/kotlin-stdlib-jdk7-1.8.22.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk7",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk7-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk8-nodeps",
-    jars: ["org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.22/kotlin-stdlib-jdk8-1.8.22.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk8",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk8-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk7",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-nodeps",
-    jars: ["org/jetbrains/kotlin/kotlin-stdlib/1.9.20/kotlin-stdlib-1.9.20.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-nodeps",
-        "OpenEUICC_org.jetbrains_annotations",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-android-nodeps",
-    jars: ["org/jetbrains/kotlinx/kotlinx-coroutines-android/1.6.4/kotlinx-coroutines-android-1.6.4.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-android",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-android-nodeps",
-        "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-core-jvm",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk8",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-core-jvm-nodeps",
-    jars: ["org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-core-jvm",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains.kotlinx_kotlinx-coroutines-core-jvm-nodeps",
-        "OpenEUICC_org.jetbrains.kotlin_kotlin-stdlib-jdk8",
-    ],
-    java_version: "1.7",
-}
-
-java_import {
-    name: "OpenEUICC_org.jetbrains_annotations-nodeps",
-    jars: ["org/jetbrains/annotations/13.0/annotations-13.0.jar"],
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-}
-
-java_library_static {
-    name: "OpenEUICC_org.jetbrains_annotations",
-    sdk_version: "33",
-    min_sdk_version: "14",
-    apex_available: [
-        "//apex_available:platform",
-        "//apex_available:anyapex",
-    ],
-    static_libs: [
-        "OpenEUICC_org.jetbrains_annotations-nodeps",
     ],
     java_version: "1.7",
 }
