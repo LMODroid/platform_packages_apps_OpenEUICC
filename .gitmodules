@@ -1,3 +1,0 @@
-[submodule "libs/lpac-jni/src/main/jni/lpac"]
-	path = libs/lpac-jni/src/main/jni/lpac
-	url = https://github.com/estkme/lpac
