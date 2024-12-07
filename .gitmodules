@@ -1,3 +1,6 @@
 [submodule "libs/lpac-jni/src/main/jni/lpac"]
 	path = libs/lpac-jni/src/main/jni/lpac
 	url = https://github.com/estkme/lpac
+[submodule "prebuilt-deps"]
+	path = prebuilt-deps
+	url = https://gitea.angry.im/PeterCxy/android_prebuilts_openeuicc-deps
