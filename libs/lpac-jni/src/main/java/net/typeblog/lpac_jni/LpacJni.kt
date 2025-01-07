@@ -19,7 +19,7 @@ internal object LpacJni {
     external fun es10cEnableProfile(handle: Long, iccid: String, refresh: Boolean): Int
     external fun es10cDisableProfile(handle: Long, iccid: String, refresh: Boolean): Int
     external fun es10cDeleteProfile(handle: Long, iccid: String): Int
-    external fun es10cSetNickname(handle: Long, iccid: String, nick: String): Int
+    external fun es10cSetNickname(handle: Long, iccid: String, nickNullTerminated: ByteArray): Int
 
     // es10b
     external fun es10bListNotification(handle: Long): Long // A native pointer to a linked list. Handle with linked list-related methods below. May be 0 (null)
@@ -29,6 +29,7 @@ internal object LpacJni {
     // We do not expose all of the functions because of tediousness :)
     external fun downloadProfile(handle: Long, smdp: String, matchingId: String?, imei: String?,
                                  confirmationCode: String?, callback: ProfileDownloadCallback): Int
+    external fun downloadErrCodeToString(code: Int): String
     external fun handleNotification(handle: Long, seqNumber: Long): Int
     // Cancel any ongoing es9p and/or es10b sessions
     external fun cancelSessions(handle: Long)
@@ -61,6 +62,7 @@ internal object LpacJni {
     external fun notificationsFree(head: Long)
     // EuiccInfo2
     external fun euiccInfo2Free(info: Long)
+    external fun euiccInfo2GetSGP22Version(info: Long): String
     external fun euiccInfo2GetProfileVersion(info: Long): String
     external fun euiccInfo2GetEuiccFirmwareVersion(info: Long): String
     external fun euiccInfo2GetGlobalPlatformVersion(info: Long): String

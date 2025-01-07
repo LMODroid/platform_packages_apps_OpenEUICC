@@ -7,12 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import im.angry.openeuicc.common.R
+import im.angry.openeuicc.core.EuiccChannelManager
 import im.angry.openeuicc.util.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -20,6 +22,11 @@ import kotlinx.coroutines.launch
 import net.typeblog.lpac_jni.LocalProfileInfo
 
 class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardStepFragment() {
+    companion object {
+        const val LOW_NVRAM_THRESHOLD =
+            30 * 1024 // < 30 KiB, alert about potential download failure
+    }
+
     private data class SlotInfo(
         val logicalSlotId: Int,
         val isRemovable: Boolean,
@@ -28,7 +35,8 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
         val eID: String,
         val freeSpace: Int,
         val imei: String,
-        val enabledProfileName: String?
+        val enabledProfileName: String?,
+        val intrinsicChannelName: String?,
     )
 
     private var loaded = false
@@ -44,6 +52,25 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
         DownloadWizardMethodSelectFragment()
 
     override fun createPrevFragment(): DownloadWizardActivity.DownloadWizardStepFragment? = null
+
+    override fun beforeNext() {
+        super.beforeNext()
+
+        if (adapter.selected.freeSpace < LOW_NVRAM_THRESHOLD) {
+            val activity = requireActivity()
+
+            AlertDialog.Builder(requireContext()).apply {
+                setTitle(R.string.profile_download_low_nvram_title)
+                setMessage(R.string.profile_download_low_nvram_message)
+                setCancelable(true)
+                setPositiveButton(android.R.string.ok, null)
+                setNegativeButton(android.R.string.cancel) { _, _ ->
+                    activity.finish()
+                }
+                show()
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -70,7 +97,7 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
     private suspend fun init() {
         ensureEuiccChannelManager()
         showProgressBar(-1)
-        val slots = euiccChannelManager.flowEuiccPorts().map { (slotId, portId) ->
+        val slots = euiccChannelManager.flowAllOpenEuiccPorts().map { (slotId, portId) ->
             euiccChannelManager.withEuiccChannel(slotId, portId) { channel ->
                 SlotInfo(
                     channel.logicalSlotId,
@@ -84,7 +111,8 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
                     } catch (e: Exception) {
                         ""
                     },
-                    channel.lpa.profiles.find { it.state == LocalProfileInfo.State.Enabled }?.displayName
+                    channel.lpa.profiles.enabled?.displayName,
+                    channel.intrinsicChannelName,
                 )
             }
         }.toList().sortedBy { it.logicalSlotId }
@@ -129,6 +157,7 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
         @Suppress("UNUSED_PARAMETER")
         fun onSelect(view: View) {
             if (curIdx < 0) return
+            checkBox.isChecked = true
             if (adapter.currentSelectedIdx == curIdx) return
             val lastIdx = adapter.currentSelectedIdx
             adapter.currentSelectedIdx = curIdx
@@ -153,7 +182,11 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
                 )
             }
 
-            title.text = root.context.getString(R.string.download_wizard_slot_title, item.logicalSlotId)
+            title.text = if (item.logicalSlotId == EuiccChannelManager.USB_CHANNEL_ID) {
+                item.intrinsicChannelName ?: root.context.getString(R.string.usb)
+            } else {
+                appContainer.customizableTextProvider.formatInternalChannelName(item.logicalSlotId)
+            }
             eID.text = item.eID
             activeProfile.text = item.enabledProfileName ?: root.context.getString(R.string.unknown)
             freeSpace.text = formatFreeSpace(item.freeSpace)
@@ -164,6 +197,9 @@ class DownloadWizardSlotSelectFragment : DownloadWizardActivity.DownloadWizardSt
     private inner class SlotInfoAdapter : RecyclerView.Adapter<SlotItemHolder>() {
         var slots: List<SlotInfo> = listOf()
         var currentSelectedIdx = -1
+
+        val selected: SlotInfo
+            get() = slots[currentSelectedIdx]
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SlotItemHolder {
             val root = LayoutInflater.from(parent.context).inflate(R.layout.download_slot_item, parent, false)

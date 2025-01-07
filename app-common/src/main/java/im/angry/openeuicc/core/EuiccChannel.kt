@@ -16,5 +16,17 @@ interface EuiccChannel {
 
     val valid: Boolean
 
+    /**
+     * Answer to Reset (ATR) value of the underlying interface, if any
+     */
+    val atr: ByteArray?
+
+    /**
+     * Intrinsic name of this channel. For device-internal SIM slots,
+     * this should be null; for USB readers, this should be the name of
+     * the reader device.
+     */
+    val intrinsicChannelName: String?
+
     fun close()
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
@@ -37,7 +38,6 @@ import im.angry.openeuicc.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -110,16 +110,9 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
             LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
 
         fab.setOnClickListener {
-            lifecycleScope.launch {
-                if (preferenceRepository.experimentalDownloadWizardFlow.first()) {
-                    Intent(requireContext(), DownloadWizardActivity::class.java).apply {
-                        putExtra("selectedLogicalSlot", logicalSlotId)
-                        startActivity(this)
-                    }
-                } else {
-                    ProfileDownloadFragment.newInstance(slotId, portId)
-                        .show(childFragmentManager, ProfileDownloadFragment.TAG)
-                }
+            Intent(requireContext(), DownloadWizardActivity::class.java).apply {
+                putExtra("selectedLogicalSlot", logicalSlotId)
+                startActivity(this)
             }
         }
     }
@@ -235,11 +228,7 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
                 portId,
                 iccid,
                 enable,
-                reconnectTimeoutMillis = if (isUsb) {
-                    0
-                } else {
-                    30 * 1000
-                }
+                reconnectTimeoutMillis = 30 * 1000
             ).waitDone()
 
             when (err) {
@@ -269,7 +258,7 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
                         invalid = true
                         // Timed out waiting for SIM to come back online, we can no longer assume that the LPA is still valid
                         AlertDialog.Builder(requireContext()).apply {
-                            setMessage(R.string.enable_disable_timeout)
+                            setMessage(appContainer.customizableTextProvider.profileSwitchingTimeoutMessage)
                             setPositiveButton(android.R.string.ok) { dialog, _ ->
                                 dialog.dismiss()
                                 requireActivity().finish()
@@ -356,7 +345,8 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
             iccid.setOnLongClickListener {
                 requireContext().getSystemService(ClipboardManager::class.java)!!
                     .setPrimaryClip(ClipData.newPlainText("iccid", iccid.text))
-                Toast.makeText(requireContext(), R.string.toast_iccid_copied, Toast.LENGTH_SHORT)
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) Toast
+                    .makeText(requireContext(), R.string.toast_iccid_copied, Toast.LENGTH_SHORT)
                     .show()
                 true
             }
@@ -367,10 +357,6 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
         private lateinit var profile: LocalProfileInfo
 
         fun setProfile(profile: LocalProfileInfo) {
-            if (unfilteredProfileListFlow.value) {
-                profileClassLabel.isVisible = true
-                profileClass.isVisible = true
-            }
             this.profile = profile
             name.text = profile.displayName
 
@@ -382,7 +368,9 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
                 }
             )
             provider.text = profile.providerName
-            if (profileClass.isVisible) profileClass.setText(
+            profileClassLabel.isVisible = unfilteredProfileListFlow.value
+            profileClass.isVisible = unfilteredProfileListFlow.value
+            profileClass.setText(
                 when (profile.profileClass) {
                     LocalProfileInfo.Clazz.Testing -> R.string.profile_class_testing
                     LocalProfileInfo.Clazz.Provisioning -> R.string.profile_class_provisioning

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <im.angry.openeuicc.ui.preference.LongSummaryPreferenceCategory
         app:title="@string/pref_notifications"
         app:summary="@string/pref_notifications_desc"
@@ -39,9 +40,9 @@
         <Preference
             app:iconSpaceReserved="false"
             app:isPreferenceVisible="false"
-            app:key="pref_language"
-            app:summary="@string/pref_language_desc"
-            app:title="@string/pref_language" />
+            app:key="pref_advanced_language"
+            app:summary="@string/pref_advanced_language_desc"
+            app:title="@string/pref_advanced_language" />
 
         <Preference
             app:key="pref_advanced_logs"
@@ -55,12 +56,6 @@
         app:key="pref_developer"
         app:title="@string/pref_developer"
         app:iconSpaceReserved="false">
-
-        <CheckBoxPreference
-            app:key="pref_developer_experimental_download_wizard"
-            app:iconSpaceReserved="false"
-            app:title="@string/pref_developer_experimental_download_wizard"
-            app:summary="@string/pref_developer_experimental_download_wizard_desc" />
 
         <CheckBoxPreference
             app:iconSpaceReserved="false"
@@ -77,6 +72,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="pref_info"
         app:title="@string/pref_info"
         app:iconSpaceReserved="false">
         <Preference
@@ -88,6 +84,10 @@
             app:iconSpaceReserved="false"
             app:title="@string/pref_info_source_code"
             app:summary="@string/pref_info_source_code_url"
-            app:key="pref_info_source_code"/>
+            app:key="pref_info_source_code">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="@string/pref_info_source_code_url" />
+        </Preference>
     </PreferenceCategory>
 </PreferenceScreen>

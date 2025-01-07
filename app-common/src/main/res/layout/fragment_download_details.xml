@@ -16,10 +16,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:textSize="20sp"
-            android:layout_marginTop="20sp"
-            android:layout_marginBottom="20sp"
-            android:layout_marginStart="60sp"
-            android:layout_marginEnd="60sp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginStart="60dp"
+            android:layout_marginEnd="60dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constrainedWidth="true"
@@ -43,7 +43,8 @@
             android:id="@+id/profile_download_code"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="@string/profile_download_code">
+            android:hint="@string/profile_download_code"
+            app:passwordToggleEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:maxLines="1"
@@ -57,7 +58,8 @@
             android:id="@+id/profile_download_confirmation_code"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="@string/profile_download_confirmation_code">
+            android:hint="@string/profile_download_confirmation_code"
+            app:passwordToggleEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:maxLines="1"
@@ -80,7 +82,7 @@
                 android:maxLines="1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="textPassword" />
+                android:inputType="numberPassword" />
 
         </com.google.android.material.textfield.TextInputLayout>
 

@@ -5,11 +5,16 @@ import net.typeblog.lpac_jni.HttpInterface.HttpResponse
 interface LocalProfileAssistant {
     @Suppress("ArrayInDataClass")
     data class ProfileDownloadException(
+        val lpaErrorReason: String,
         val lastHttpResponse: HttpResponse?,
         val lastHttpException: Exception?,
         val lastApduResponse: ByteArray?,
         val lastApduException: Exception?,
     ) : Exception("Failed to download profile")
+
+    class ProfileRenameException() : Exception("Failed to rename profile")
+    class ProfileNameTooLongException() : Exception("Profile name too long")
+    class ProfileNameIsInvalidUTF8Exception() : Exception("Profile name is invalid UTF-8")
 
     val valid: Boolean
     val profiles: List<LocalProfileInfo>
@@ -39,9 +44,14 @@ interface LocalProfileAssistant {
 
     fun euiccMemoryReset()
 
+    /**
+     * Nickname must be valid UTF-8 and shorter than 64 chars.
+     *
+     * May throw one of: ProfileRenameException, ProfileNameTooLongException, ProfileNameIsInvalidUTF8Exception
+     */
     fun setNickname(
         iccid: String, nickname: String
-    ): Boolean
+    )
 
     fun close()
 }

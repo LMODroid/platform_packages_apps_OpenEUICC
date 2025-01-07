@@ -13,7 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -184,20 +184,30 @@ open class DefaultEuiccChannelManager(
     }
 
     override suspend fun waitForReconnect(physicalSlotId: Int, portId: Int, timeoutMillis: Long) {
-        if (physicalSlotId == EuiccChannelManager.USB_CHANNEL_ID) return
-
-        // If there is already a valid channel, we close it proactively
-        // Sometimes the current channel can linger on for a bit even after it should have become invalid
-        channelCache.find { it.slotId == physicalSlotId && it.portId == portId }?.apply {
-            if (valid) close()
+        if (physicalSlotId == EuiccChannelManager.USB_CHANNEL_ID) {
+            usbChannel?.close()
+            usbChannel = null
+        } else {
+            // If there is already a valid channel, we close it proactively
+            // Sometimes the current channel can linger on for a bit even after it should have become invalid
+            channelCache.find { it.slotId == physicalSlotId && it.portId == portId }?.apply {
+                if (valid) close()
+            }
         }
 
         withTimeout(timeoutMillis) {
             while (true) {
                 try {
-                    // tryOpenEuiccChannel() will automatically dispose of invalid channels
-                    // and recreate when needed
-                    val channel = findEuiccChannelByPort(physicalSlotId, portId)!!
+                    val channel = if (physicalSlotId == EuiccChannelManager.USB_CHANNEL_ID) {
+                        // tryOpenUsbEuiccChannel() will always try to reopen the channel, even if
+                        // a USB channel already exists
+                        tryOpenUsbEuiccChannel()
+                        usbChannel!!
+                    } else {
+                        // tryOpenEuiccChannel() will automatically dispose of invalid channels
+                        // and recreate when needed
+                        findEuiccChannelByPort(physicalSlotId, portId)!!
+                    }
                     check(channel.valid) { "Invalid channel" }
                     break
                 } catch (e: Exception) {
@@ -208,7 +218,7 @@ open class DefaultEuiccChannelManager(
         }
     }
 
-    override fun flowEuiccPorts(): Flow<Pair<Int, Int>> = flow {
+    override fun flowInternalEuiccPorts(): Flow<Pair<Int, Int>> = flow {
         uiccCards.forEach { info ->
             info.ports.forEach { port ->
                 tryOpenEuiccChannel(port)?.also {
@@ -222,6 +232,13 @@ open class DefaultEuiccChannelManager(
             }
         }
     }.flowOn(Dispatchers.IO)
+
+    override fun flowAllOpenEuiccPorts(): Flow<Pair<Int, Int>> =
+        merge(flowInternalEuiccPorts(), flow {
+            if (tryOpenUsbEuiccChannel().second) {
+                emit(Pair(EuiccChannelManager.USB_CHANNEL_ID, 0))
+            }
+        })
 
     override suspend fun tryOpenUsbEuiccChannel(): Pair<UsbDevice?, Boolean> =
         withContext(Dispatchers.IO) {

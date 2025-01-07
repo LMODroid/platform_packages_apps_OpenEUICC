@@ -171,6 +171,7 @@ class LocalProfileAssistantImpl(
             }
 
             val ret = EuiccInfo2(
+                LpacJni.euiccInfo2GetSGP22Version(cInfo),
                 LpacJni.euiccInfo2GetProfileVersion(cInfo),
                 LpacJni.euiccInfo2GetEuiccFirmwareVersion(cInfo),
                 LpacJni.euiccInfo2GetGlobalPlatformVersion(cInfo),
@@ -214,6 +215,7 @@ class LocalProfileAssistantImpl(
         if (res != 0) {
             // Construct the error now to store any error information we _can_ access
             val err = LocalProfileAssistant.ProfileDownloadException(
+                lpaErrorReason = LpacJni.downloadErrCodeToString(-res),
                 httpInterface.lastHttpResponse,
                 httpInterface.lastHttpException,
                 apduInterface.lastApduResponse,
@@ -238,8 +240,23 @@ class LocalProfileAssistantImpl(
         } == 0
 
     @Synchronized
-    override fun setNickname(iccid: String, nickname: String): Boolean =
-        LpacJni.es10cSetNickname(contextHandle, iccid, nickname) == 0
+    override fun setNickname(iccid: String, nickname: String) {
+        val encoded = try {
+            Charsets.UTF_8.encode(nickname).array()
+        } catch (e: CharacterCodingException) {
+            throw LocalProfileAssistant.ProfileNameIsInvalidUTF8Exception()
+        }
+
+        if (encoded.size >= 64) {
+            throw LocalProfileAssistant.ProfileNameTooLongException()
+        }
+
+        val encodedNullTerminated = encoded + byteArrayOf(0)
+
+        if (LpacJni.es10cSetNickname(contextHandle, iccid, encodedNullTerminated) != 0) {
+            throw LocalProfileAssistant.ProfileRenameException()
+        }
+    }
 
     override fun euiccMemoryReset() {
         LpacJni.es10cEuiccMemoryReset(contextHandle)
