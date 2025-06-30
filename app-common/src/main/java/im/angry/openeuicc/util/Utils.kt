@@ -54,6 +54,9 @@ interface OpenEuiccContextMarker {
     val appContainer: AppContainer
         get() = openEuiccApplication.appContainer
 
+    val preferenceRepository: PreferenceRepository
+        get() = appContainer.preferenceRepository
+
     val telephonyManager: TelephonyManager
         get() = appContainer.telephonyManager
 }
@@ -85,6 +88,13 @@ suspend fun connectSEService(context: Context): SEService = suspendCoroutine { c
         }
     }
 }
+
+inline fun <T> Bitmap.use(f: (Bitmap) -> T): T =
+    try {
+        f(this)
+    } finally {
+        recycle()
+    }
 
 fun decodeQrFromBitmap(bmp: Bitmap): String? =
      runCatching {

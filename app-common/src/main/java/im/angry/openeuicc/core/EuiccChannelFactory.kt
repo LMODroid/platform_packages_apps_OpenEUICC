@@ -1,15 +1,17 @@
 package im.angry.openeuicc.core
 
-import android.hardware.usb.UsbDevice
-import android.hardware.usb.UsbInterface
+import im.angry.openeuicc.core.usb.UsbCcidContext
 import im.angry.openeuicc.util.*
 
 // This class is here instead of inside DI because it contains a bit more logic than just
 // "dumb" dependency injection.
 interface EuiccChannelFactory {
-    suspend fun tryOpenEuiccChannel(port: UiccPortInfoCompat): EuiccChannel?
+    suspend fun tryOpenEuiccChannel(port: UiccPortInfoCompat, isdrAid: ByteArray): EuiccChannel?
 
-    fun tryOpenUsbEuiccChannel(usbDevice: UsbDevice, usbInterface: UsbInterface): EuiccChannel?
+    fun tryOpenUsbEuiccChannel(
+        ccidCtx: UsbCcidContext,
+        isdrAid: ByteArray
+    ): EuiccChannel?
 
     /**
      * Release all resources used by this EuiccChannelFactory

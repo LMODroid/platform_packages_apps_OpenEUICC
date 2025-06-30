@@ -10,8 +10,10 @@ import net.typeblog.lpac_jni.LocalProfileAssistant
 import net.typeblog.lpac_jni.LocalProfileInfo
 import net.typeblog.lpac_jni.LocalProfileNotification
 import net.typeblog.lpac_jni.ProfileDownloadCallback
+import net.typeblog.lpac_jni.Version
 
 class LocalProfileAssistantImpl(
+    isdrAid: ByteArray,
     rawApduInterface: ApduInterface,
     rawHttpInterface: HttpInterface
 ): LocalProfileAssistant {
@@ -27,9 +29,9 @@ class LocalProfileAssistantImpl(
         var lastApduResponse: ByteArray? = null
         var lastApduException: Exception? = null
 
-        override fun transmit(tx: ByteArray): ByteArray =
+        override fun transmit(handle: Int, tx: ByteArray): ByteArray =
             try {
-                apduInterface.transmit(tx).also {
+                apduInterface.transmit(handle, tx).also {
                     lastApduException = null
                     lastApduResponse = it
                 }
@@ -76,15 +78,15 @@ class LocalProfileAssistantImpl(
     private val httpInterface = HttpInterfaceWrapper(rawHttpInterface)
 
     private var finalized = false
-    private var contextHandle: Long = LpacJni.createContext(apduInterface, httpInterface)
+    private var contextHandle: Long = LpacJni.createContext(isdrAid, apduInterface, httpInterface)
 
     init {
         if (LpacJni.euiccInit(contextHandle) < 0) {
             throw IllegalArgumentException("Failed to initialize LPA")
         }
 
-        val pkids = euiccInfo2?.euiccCiPKIdListForVerification ?: arrayOf()
-        httpInterface.usePublicKeyIds(pkids)
+        val pkids = euiccInfo2?.euiccCiPKIdListForVerification ?: setOf()
+        httpInterface.usePublicKeyIds(pkids.toTypedArray())
     }
 
     override fun setEs10xMss(mss: Byte) {
@@ -156,31 +158,29 @@ class LocalProfileAssistantImpl(
             val cInfo = LpacJni.es10cexGetEuiccInfo2(contextHandle)
             if (cInfo == 0L) return null
 
-            val euiccCiPKIdListForSigning = mutableListOf<String>()
-            var curr = LpacJni.euiccInfo2GetEuiccCiPKIdListForSigning(cInfo)
-            while (curr != 0L) {
-                euiccCiPKIdListForSigning.add(LpacJni.stringDeref(curr))
-                curr = LpacJni.stringArrNext(curr)
-            }
-
-            val euiccCiPKIdListForVerification = mutableListOf<String>()
-            curr = LpacJni.euiccInfo2GetEuiccCiPKIdListForVerification(cInfo)
-            while (curr != 0L) {
-                euiccCiPKIdListForVerification.add(LpacJni.stringDeref(curr))
-                curr = LpacJni.stringArrNext(curr)
-            }
-
             val ret = EuiccInfo2(
-                LpacJni.euiccInfo2GetSGP22Version(cInfo),
-                LpacJni.euiccInfo2GetProfileVersion(cInfo),
-                LpacJni.euiccInfo2GetEuiccFirmwareVersion(cInfo),
-                LpacJni.euiccInfo2GetGlobalPlatformVersion(cInfo),
+                Version(LpacJni.euiccInfo2GetSGP22Version(cInfo)),
+                Version(LpacJni.euiccInfo2GetProfileVersion(cInfo)),
+                Version(LpacJni.euiccInfo2GetEuiccFirmwareVersion(cInfo)),
+                Version(LpacJni.euiccInfo2GetGlobalPlatformVersion(cInfo)),
                 LpacJni.euiccInfo2GetSasAcreditationNumber(cInfo),
-                LpacJni.euiccInfo2GetPpVersion(cInfo),
+                Version(LpacJni.euiccInfo2GetPpVersion(cInfo)),
                 LpacJni.euiccInfo2GetFreeNonVolatileMemory(cInfo).toInt(),
                 LpacJni.euiccInfo2GetFreeVolatileMemory(cInfo).toInt(),
-                euiccCiPKIdListForSigning.toTypedArray(),
-                euiccCiPKIdListForVerification.toTypedArray()
+                buildSet {
+                    var cursor = LpacJni.euiccInfo2GetEuiccCiPKIdListForSigning(cInfo)
+                    while (cursor != 0L) {
+                        add(LpacJni.stringDeref(cursor))
+                        cursor = LpacJni.stringArrNext(cursor)
+                    }
+                },
+                buildSet {
+                    var cursor = LpacJni.euiccInfo2GetEuiccCiPKIdListForVerification(cInfo)
+                    while (cursor != 0L) {
+                        add(LpacJni.stringDeref(cursor))
+                        cursor = LpacJni.stringArrNext(cursor)
+                    }
+                },
             )
 
             LpacJni.euiccInfo2Free(cInfo)

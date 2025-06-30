@@ -77,6 +77,16 @@ open class SettingsFragment: PreferenceFragmentCompat() {
 
         requirePreference<CheckBoxPreference>("pref_developer_ignore_tls_certificate")
             .bindBooleanFlow(preferenceRepository.ignoreTLSCertificateFlow)
+
+        requirePreference<CheckBoxPreference>("pref_developer_refresh_after_switch")
+            .bindBooleanFlow(preferenceRepository.refreshAfterSwitchFlow)
+
+        requirePreference<CheckBoxPreference>("pref_developer_euicc_memory_reset")
+            .bindBooleanFlow(preferenceRepository.euiccMemoryResetFlow)
+
+        requirePreference<Preference>("pref_developer_isdr_aid_list").apply {
+            intent = Intent(requireContext(), IsdrAidListActivity::class.java)
+        }
     }
 
     protected fun <T : Preference> requirePreference(key: CharSequence) =
@@ -122,7 +132,7 @@ open class SettingsFragment: PreferenceFragmentCompat() {
         return true
     }
 
-    private fun CheckBoxPreference.bindBooleanFlow(flow: PreferenceFlowWrapper<Boolean>) {
+    protected fun CheckBoxPreference.bindBooleanFlow(flow: PreferenceFlowWrapper<Boolean>) {
         lifecycleScope.launch {
             flow.collect { isChecked = it }
         }

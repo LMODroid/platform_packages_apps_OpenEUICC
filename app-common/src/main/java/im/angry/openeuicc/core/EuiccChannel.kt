@@ -1,6 +1,7 @@
 package im.angry.openeuicc.core
 
 import im.angry.openeuicc.util.*
+import net.typeblog.lpac_jni.ApduInterface
 import net.typeblog.lpac_jni.LocalProfileAssistant
 
 interface EuiccChannel {
@@ -27,6 +28,16 @@ interface EuiccChannel {
      * the reader device.
      */
     val intrinsicChannelName: String?
+
+    /**
+     * The underlying APDU interface for this channel
+     */
+    val apduInterface: ApduInterface
+
+    /**
+     * The AID of the ISD-R channel currently in use
+     */
+    val isdrAid: ByteArray
 
     fun close()
 }

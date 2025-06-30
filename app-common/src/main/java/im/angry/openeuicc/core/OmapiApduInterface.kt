@@ -7,9 +7,9 @@ import android.util.Log
 import im.angry.openeuicc.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import net.typeblog.lpac_jni.ApduInterface
+import java.util.concurrent.atomic.AtomicInteger
 
 class OmapiApduInterface(
     private val service: SEService,
@@ -21,7 +21,8 @@ class OmapiApduInterface(
     }
 
     private lateinit var session: Session
-    private lateinit var lastChannel: Channel
+    private val index = AtomicInteger(0)
+    private val channels = mutableMapOf<Int, Channel>()
 
     override val valid: Boolean
         get() = service.isConnected && (this::session.isInitialized && !session.isClosed)
@@ -38,24 +39,23 @@ class OmapiApduInterface(
     }
 
     override fun logicalChannelOpen(aid: ByteArray): Int {
-        check(!this::lastChannel.isInitialized) {
-            "Can only open one channel"
-        }
-        lastChannel = session.openLogicalChannel(aid)!!
-        return 1
+        val channel = session.openLogicalChannel(aid)
+        check(channel != null) { "Failed to open logical channel (${aid.encodeHex()})" }
+        val handle = index.incrementAndGet()
+        synchronized(channels) { channels[handle] = channel }
+        return handle
     }
 
     override fun logicalChannelClose(handle: Int) {
-        check(handle == 1 && !this::lastChannel.isInitialized) {
-            "Unknown channel"
-        }
-        lastChannel.close()
+        val channel = channels[handle]
+        check(channel != null) { "Invalid logical channel handle $handle" }
+        if (channel.isOpen) channel.close()
+        synchronized(channels) { channels.remove(handle) }
     }
 
-    override fun transmit(tx: ByteArray): ByteArray {
-        check(this::lastChannel.isInitialized) {
-            "Unknown channel"
-        }
+    override fun transmit(handle: Int, tx: ByteArray): ByteArray {
+        val channel = channels[handle]
+        check(channel != null) { "Invalid logical channel handle $handle" }
 
         if (runBlocking { verboseLoggingFlow.first() }) {
             Log.d(TAG, "OMAPI APDU: ${tx.encodeHex()}")
@@ -63,7 +63,7 @@ class OmapiApduInterface(
 
         try {
             for (i in 0..10) {
-                val res = lastChannel.transmit(tx)
+                val res = channel.transmit(tx)
                 if (runBlocking { verboseLoggingFlow.first() }) {
                     Log.d(TAG, "OMAPI APDU response: ${res.encodeHex()}")
                 }
