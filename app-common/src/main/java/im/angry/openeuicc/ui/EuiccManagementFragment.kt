@@ -253,7 +253,7 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
                     if (!isUsb) {
                         withContext(Dispatchers.Main) {
                             AlertDialog.Builder(requireContext()).apply {
-                                setMessage(R.string.switch_did_not_refresh)
+                                setMessage(R.string.profile_switch_did_not_refresh)
                                 setPositiveButton(android.R.string.ok) { dialog, _ ->
                                     dialog.dismiss()
                                     requireActivity().finish()
@@ -347,6 +347,7 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
         private val profileClassLabel: TextView = root.requireViewById(R.id.profile_class_label)
         private val profileClass: TextView = root.requireViewById(R.id.profile_class)
         private val profileMenu: ImageButton = root.requireViewById(R.id.profile_menu)
+        private val profileSeqNumber: TextView = root.requireViewById(R.id.profile_sequence_number)
 
         init {
             iccid.setOnClickListener {
@@ -366,7 +367,9 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
                 true
             }
 
-            profileMenu.setOnClickListener { showOptionsMenu() }
+            profileMenu.setOnClickListener {
+                showOptionsMenu()
+            }
         }
 
         private lateinit var profile: LocalProfileInfo
@@ -377,9 +380,9 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
 
             state.setText(
                 if (profile.isEnabled) {
-                    R.string.enabled
+                    R.string.profile_state_enabled
                 } else {
-                    R.string.disabled
+                    R.string.profile_state_disabled
                 }
             )
             provider.text = profile.providerName
@@ -394,6 +397,13 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
             )
             iccid.text = profile.iccid
             iccid.transformationMethod = PasswordTransformationMethod.getInstance()
+        }
+
+        fun setProfileSequenceNumber(index: Int) {
+            profileSeqNumber.text = root.context.getString(
+                R.string.profile_sequence_number_format,
+                index,
+            )
         }
 
         private fun showOptionsMenu() {
@@ -461,6 +471,7 @@ open class EuiccManagementFragment : Fragment(), EuiccProfilesChangedListener,
             when (holder) {
                 is ProfileViewHolder -> {
                     holder.setProfile(profiles[position])
+                    holder.setProfileSequenceNumber(position + 1)
                 }
                 is FooterViewHolder -> {
                     holder.attach(footerViews[position - profiles.size])
